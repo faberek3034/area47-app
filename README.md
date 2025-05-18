@@ -60,3 +60,46 @@ if 'user' in st.session_state:
         if st.button(f"Entschlüsseln Nachricht {i}"):
             decrypted_msg = cipher_suite.decrypt(message['encrypted_msg'].encode()).decode()
             st.success(f"Entschlüsselte Nachricht: {decrypted_msg}")
+import streamlit as st
+from cryptography.fernet import Fernet
+
+# Generiere einen Schlüssel (in einer echten App sollte dieser sicher gespeichert werden)
+key = Fernet.generate_key()
+cipher_suite = Fernet(key)
+
+# Titel der App
+st.title("Area 47 - Verschlüsselter Chat")
+
+# Nutzeranmeldung
+if 'user' not in st.session_state:
+    user = st.selectbox("Wähle deinen Nutzer", ["User1", "User2"])
+    if st.button("Anmelden"):
+        st.session_state.user = user
+        st.experimental_rerun()
+
+if 'user' in st.session_state:
+    st.write(f"Hallo, {st.session_state.user}!")
+
+    # Chatnachrichten speichern
+    if 'messages' not in st.session_state:
+        st.session_state.messages = []
+
+    # Eingabe für neue Nachricht
+    msg = st.text_input("Neue Nachricht")
+
+    if st.button("Senden") and msg:
+        # Nachricht verschlüsseln
+        encrypted_msg = cipher_suite.encrypt(msg.encode()).decode()
+        # Nachricht speichern
+        st.session_state.messages.append({
+            'sender': st.session_state.user,
+            'encrypted_msg': encrypted_msg
+        })
+
+    st.write("### Chatverlauf (verschlüsselt):")
+    for i, message in enumerate(st.session_state.messages):
+        st.write(f"{message['sender']}: {message['encrypted_msg']}")
+        # Button zum Entschlüsseln
+        if st.button(f"Entschlüsseln Nachricht {i}"):
+            decrypted_msg = cipher_suite.decrypt(message['encrypted_msg'].encode()).decode()
+            st.success(f"Entschlüsselte Nachricht: {decrypted_msg}")
